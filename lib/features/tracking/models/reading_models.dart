@@ -8,6 +8,7 @@ class ReadingBook extends Equatable {
     required this.totalPages,
     required this.currentPage,
     this.coverAsset,
+    this.coverUrl,
   });
 
   final String id;
@@ -16,13 +17,12 @@ class ReadingBook extends Equatable {
   final int totalPages;
   final int currentPage;
   final String? coverAsset;
+  final String? coverUrl;
 
   double get progress =>
       totalPages == 0 ? 0 : (currentPage / totalPages).clamp(0, 1);
 
-  ReadingBook copyWith({
-    int? currentPage,
-  }) {
+  ReadingBook copyWith({int? currentPage, String? coverUrl}) {
     return ReadingBook(
       id: id,
       title: title,
@@ -30,11 +30,20 @@ class ReadingBook extends Equatable {
       totalPages: totalPages,
       currentPage: currentPage ?? this.currentPage,
       coverAsset: coverAsset,
+      coverUrl: coverUrl ?? this.coverUrl,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, author, totalPages, currentPage, coverAsset];
+  List<Object?> get props => [
+    id,
+    title,
+    author,
+    totalPages,
+    currentPage,
+    coverAsset,
+    coverUrl,
+  ];
 }
 
 class ReadingSession extends Equatable {

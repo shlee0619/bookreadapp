@@ -1,0 +1,22 @@
+{
+  "appTitle": "Booklog",
+  "tabTracking": "Tracking",
+  "tabNotes": "Notes",
+  "tabCommunity": "Community",
+  "navTracking": "Tracking",
+  "navNotes": "Notes",
+  "navCommunity": "Community",
+  "scanBook": "Scan Book",
+  "scanTitle": "Scan Book Barcode",
+  "scanPrompt": "Scan the barcode on the back of the book",
+  "scanResult": "Scan Result",
+  "rescan": "Rescan",
+  "addToLibrary": "Add to Library",
+  "unknownTitle": "Unknown Title",
+  "unknownAuthor": "Unknown Author",
+  "reviews": "Reviews",
+  "comments": "Comments",
+  "noComments": "No comments yet.\nBe the first to leave one!",
+  "writeComment": "Write a comment...",
+  "featurePending": "This feature is coming soon."
+}

@@ -5,25 +5,25 @@ import '../models/reading_models.dart';
 
 final readingTrackerProvider =
     StateNotifierProvider<ReadingTrackerNotifier, ReadingTrackerState>(
-  (ref) => ReadingTrackerNotifier(),
-);
+      (ref) => ReadingTrackerNotifier(),
+    );
 
 class ReadingTrackerNotifier extends StateNotifier<ReadingTrackerState> {
   ReadingTrackerNotifier()
-      : super(
-          ReadingTrackerState(
-            currentBook: const ReadingBook(
-              id: 'book-1',
-              title: '미움받을 용기',
-              author: '기시미 이치로, 고가 후미타케',
-              totalPages: 324,
-              currentPage: 172,
-              coverAsset: 'assets/logo.png',
-            ),
-            sessions: const [],
-            calendar: const {},
+    : super(
+        ReadingTrackerState(
+          currentBook: const ReadingBook(
+            id: 'book-1',
+            title: '미움받을 용기',
+            author: '기시미 이치로, 고가 후미타케',
+            totalPages: 324,
+            currentPage: 172,
+            coverAsset: 'assets/logo.png',
           ),
-        ) {
+          sessions: const [],
+          calendar: const {},
+        ),
+      ) {
     _seedSessions();
   }
 
@@ -68,8 +68,10 @@ class ReadingTrackerNotifier extends StateNotifier<ReadingTrackerState> {
       ..sort((a, b) => b.date.compareTo(a.date));
 
     final updatedBook = state.currentBook.copyWith(
-      currentPage: (state.currentBook.currentPage + pagesRead)
-          .clamp(0, state.currentBook.totalPages),
+      currentPage: (state.currentBook.currentPage + pagesRead).clamp(
+        0,
+        state.currentBook.totalPages,
+      ),
     );
 
     state = state.copyWith(
@@ -81,8 +83,14 @@ class ReadingTrackerNotifier extends StateNotifier<ReadingTrackerState> {
 
   void updateCurrentPage(int page) {
     final constrainedPage = page.clamp(0, state.currentBook.totalPages);
-    final updatedBook = state.currentBook.copyWith(currentPage: constrainedPage);
+    final updatedBook = state.currentBook.copyWith(
+      currentPage: constrainedPage,
+    );
     state = state.copyWith(currentBook: updatedBook);
+  }
+
+  void setBook(ReadingBook book) {
+    state = state.copyWith(currentBook: book, sessions: [], calendar: {});
   }
 
   void _assignSessions(List<ReadingSession> sessions) {
@@ -98,15 +106,23 @@ class ReadingTrackerNotifier extends StateNotifier<ReadingTrackerState> {
   ) {
     final grouped = <DateTime, List<ReadingSession>>{};
     for (final session in sessions) {
-      final key = DateTime(session.date.year, session.date.month, session.date.day);
+      final key = DateTime(
+        session.date.year,
+        session.date.month,
+        session.date.day,
+      );
       grouped.putIfAbsent(key, () => []).add(session);
     }
 
     return grouped.map((date, entries) {
-      final totalMinutes =
-          entries.fold<int>(0, (sum, entry) => sum + entry.duration.inMinutes);
-      final totalPages =
-          entries.fold<int>(0, (sum, entry) => sum + entry.pagesRead);
+      final totalMinutes = entries.fold<int>(
+        0,
+        (sum, entry) => sum + entry.duration.inMinutes,
+      );
+      final totalPages = entries.fold<int>(
+        0,
+        (sum, entry) => sum + entry.pagesRead,
+      );
       return MapEntry(
         date,
         ReadingCalendarDay(
@@ -121,14 +137,11 @@ class ReadingTrackerNotifier extends StateNotifier<ReadingTrackerState> {
 
 final readingTimerProvider =
     StateNotifierProvider<ReadingTimerNotifier, ReadingTimerState>(
-  (ref) => ReadingTimerNotifier(),
-);
+      (ref) => ReadingTimerNotifier(),
+    );
 
 class ReadingTimerState {
-  const ReadingTimerState({
-    required this.isRunning,
-    required this.elapsed,
-  });
+  const ReadingTimerState({required this.isRunning, required this.elapsed});
 
   final bool isRunning;
   final Duration elapsed;
@@ -136,7 +149,7 @@ class ReadingTimerState {
 
 class ReadingTimerNotifier extends StateNotifier<ReadingTimerState> {
   ReadingTimerNotifier()
-      : super(const ReadingTimerState(isRunning: false, elapsed: Duration.zero));
+    : super(const ReadingTimerState(isRunning: false, elapsed: Duration.zero));
 
   Timer? _ticker;
   DateTime? _startedAt;

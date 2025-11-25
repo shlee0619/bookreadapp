@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/reading_models.dart';
 import '../providers/tracking_providers.dart';
+import 'scan_book_screen.dart';
 
 class TrackingScreen extends ConsumerWidget {
   const TrackingScreen({super.key});
@@ -16,36 +17,48 @@ class TrackingScreen extends ConsumerWidget {
     final trackerNotifier = ref.read(readingTrackerProvider.notifier);
     final timerNotifier = ref.read(readingTimerProvider.notifier);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        children: [
-          _CurrentBookCard(book: tracker.currentBook),
-          _TimerCard(
-            elapsed: timer.elapsed,
-            isRunning: timer.isRunning,
-            onStart: timerNotifier.start,
-            onReset: timerNotifier.reset,
-            onStop: () async {
-              final elapsed = timerNotifier.stop();
-              await _showLogReadingSheet(
-                context,
-                trackerNotifier: trackerNotifier,
-                defaultDuration: elapsed,
-              );
-            },
-            onManualLog: () async {
-              await _showLogReadingSheet(
-                context,
-                trackerNotifier: trackerNotifier,
-                defaultDuration: const Duration(minutes: 30),
-              );
-            },
-          ),
-          _WeeklySummaryCard(sessions: tracker.sessions),
-          _CalendarCard(calendar: tracker.calendar),
-          _RecentSessionsCard(sessions: tracker.sessions),
-        ],
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ScanBookScreen()),
+          );
+        },
+        icon: const Icon(Icons.qr_code_scanner),
+        label: const Text('책 스캔'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          children: [
+            _CurrentBookCard(book: tracker.currentBook),
+            _TimerCard(
+              elapsed: timer.elapsed,
+              isRunning: timer.isRunning,
+              onStart: timerNotifier.start,
+              onReset: timerNotifier.reset,
+              onStop: () async {
+                final elapsed = timerNotifier.stop();
+                await _showLogReadingSheet(
+                  context,
+                  trackerNotifier: trackerNotifier,
+                  defaultDuration: elapsed,
+                );
+              },
+              onManualLog: () async {
+                await _showLogReadingSheet(
+                  context,
+                  trackerNotifier: trackerNotifier,
+                  defaultDuration: const Duration(minutes: 30),
+                );
+              },
+            ),
+            _WeeklySummaryCard(sessions: tracker.sessions),
+            _CalendarCard(calendar: tracker.calendar),
+            _RecentSessionsCard(sessions: tracker.sessions),
+          ],
+        ),
       ),
     );
   }
@@ -79,7 +92,22 @@ class _CurrentBookCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   alignment: Alignment.center,
-                  child: book.coverAsset != null
+                  child: book.coverUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Image.network(
+                            book.coverUrl!,
+                            fit: BoxFit.cover,
+                            height: 72,
+                            width: 72,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.menu_book,
+                              size: 36,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        )
+                      : book.coverAsset != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(14),
                           child: Image.asset(
@@ -205,10 +233,7 @@ class _TimerCard extends StatelessWidget {
               children: [
                 const Text(
                   'Reading timer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 IconButton(
                   onPressed: onReset,
@@ -268,8 +293,11 @@ class _WeeklySummaryCard extends StatelessWidget {
     final now = DateTime.now();
     final formatter = DateFormat('E');
     final last7Days = List.generate(7, (index) {
-      final date = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: 6 - index));
+      final date = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: 6 - index));
       final totals = sessions.where((session) {
         return session.date.year == date.year &&
             session.date.month == date.month &&
@@ -286,10 +314,14 @@ class _WeeklySummaryCard extends StatelessWidget {
       return _WeeklyStat(date: date, minutes: minutes, pages: pages);
     });
 
-    final totalMinutes =
-        last7Days.fold<int>(0, (sum, entry) => sum + entry.minutes);
-    final totalPages =
-        last7Days.fold<int>(0, (sum, entry) => sum + entry.pages);
+    final totalMinutes = last7Days.fold<int>(
+      0,
+      (sum, entry) => sum + entry.minutes,
+    );
+    final totalPages = last7Days.fold<int>(
+      0,
+      (sum, entry) => sum + entry.pages,
+    );
 
     return Card(
       child: Padding(
@@ -299,10 +331,7 @@ class _WeeklySummaryCard extends StatelessWidget {
           children: [
             const Text(
               'This week at a glance',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             Row(
@@ -396,10 +425,9 @@ class _WeeklySummaryCard extends StatelessWidget {
                               gradient: LinearGradient(
                                 colors: [
                                   Theme.of(context).colorScheme.primary,
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withAlpha(140),
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withAlpha(140),
                                 ],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
@@ -456,10 +484,7 @@ class _CalendarCardState extends State<_CalendarCard> {
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Text(
                 'Reading calendar',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
             TableCalendar<ReadingCalendarDay>(
@@ -594,10 +619,7 @@ class _DaySummary extends StatelessWidget {
         children: [
           Text(
             DateFormat('MMM d').format(entry!.date),
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -637,10 +659,7 @@ class _RecentSessionsCard extends StatelessWidget {
           children: [
             const Text(
               'Recent sessions',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             for (final session in recent)
@@ -653,10 +672,9 @@ class _RecentSessionsCard extends StatelessWidget {
                       height: 42,
                       width: 42,
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .secondaryContainer
-                            .withAlpha(153),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.secondaryContainer.withAlpha(153),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.center,
@@ -727,17 +745,11 @@ class _StatChip extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -754,10 +766,7 @@ class _SummaryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-    );
+    return Chip(avatar: Icon(icon, size: 18), label: Text(label));
   }
 }
 
@@ -815,8 +824,9 @@ class _LogReadingSheetState extends State<_LogReadingSheet> {
   final _formKey = GlobalKey<FormState>();
   late DateTime _selectedDate;
   late int _selectedDurationMinutes;
-  final TextEditingController _pagesController =
-      TextEditingController(text: '20');
+  final TextEditingController _pagesController = TextEditingController(
+    text: '20',
+  );
   final TextEditingController _noteController = TextEditingController();
 
   @override
@@ -858,10 +868,7 @@ class _LogReadingSheetState extends State<_LogReadingSheet> {
               const SizedBox(height: 20),
               const Text(
                 'Add reading log',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 16),
               ListTile(
@@ -984,4 +991,3 @@ class _LogReadingSheetState extends State<_LogReadingSheet> {
     );
   }
 }
-

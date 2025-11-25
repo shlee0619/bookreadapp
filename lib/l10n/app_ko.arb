@@ -1,0 +1,22 @@
+{
+  "appTitle": "북로그",
+  "tabTracking": "독서 분량",
+  "tabNotes": "독서 메모",
+  "tabCommunity": "커뮤니티",
+  "navTracking": "분량",
+  "navNotes": "메모",
+  "navCommunity": "커뮤니티",
+  "scanBook": "책 스캔",
+  "scanTitle": "책 바코드 스캔",
+  "scanPrompt": "책 뒷면의 바코드를 스캔하세요",
+  "scanResult": "스캔 결과",
+  "rescan": "다시 스캔",
+  "addToLibrary": "서재에 추가",
+  "unknownTitle": "제목 없음",
+  "unknownAuthor": "저자 미상",
+  "reviews": "리뷰",
+  "comments": "댓글",
+  "noComments": "아직 댓글이 없습니다.\n첫 번째 댓글을 남겨보세요!",
+  "writeComment": "댓글을 입력하세요...",
+  "featurePending": "준비 중인 기능입니다."
+}
